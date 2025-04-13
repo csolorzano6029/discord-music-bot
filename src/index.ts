@@ -62,41 +62,6 @@ const queueHandler = async (guildId: string) => {
   });
 };
 
-/* const playMusic = async (url: string, message: Message): Promise<void> => {
-  const voiceChannel = message.member?.voice.channel;
-
-  if (!voiceChannel) {
-    message.reply("🎙️ Debes estar en un canal de voz.");
-    return;
-  }
-
-  const connection = joinVoiceChannel({
-    channelId: voiceChannel.id,
-    guildId: message.guild!.id,
-    adapterCreator: message.guild!.voiceAdapterCreator,
-  });
-
-  const stream = ytdl(url, { filter: "audioonly" });
-  const resource = createAudioResource(stream);
-  const player = createAudioPlayer();
-
-  player.play(resource);
-  connection.subscribe(player);
-
-  player.on(AudioPlayerStatus.Idle, () => {
-    if (queue.length > 0) {
-      const nextUrl = queue.shift()!;
-      const stream = ytdl(nextUrl, { filter: "audioonly" });
-      const resource = createAudioResource(stream);
-      player.play(resource);
-    } else {
-      console.log("🎶 La cola está vacía, pero sigo conectado.");
-    }
-  });
-
-  message.reply(`🎵 Reproduciendo: ${url}`);
-}; */
-
 client.once("ready", () => {
   console.log(`✅ Bot conectado como ${client.user?.tag}`);
 });
@@ -143,9 +108,9 @@ client.on("messageCreate", async (message: Message) => {
 
     queues.set(guildId, queue);
 
-    player.on(AudioPlayerStatus.Idle, () => {
+    /*     player.on(AudioPlayerStatus.Idle, () => {
       queueHandler(guildId);
-    });
+    }); */
   }
 
   // Agregamos la canción a la cola
