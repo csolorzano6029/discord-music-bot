@@ -256,42 +256,46 @@ client.on("messageCreate", async (message: Message) => {
   const args = message.content.split(" ");
   const command = args.shift()?.toLowerCase();
 
-  switch (command) {
-    case "!next": {
-      const guildId = message.guild!.id;
-      message.reply("⏭️ Canción saltada.");
-      nextSong(guildId, message);
-      break;
+  try {
+    switch (command) {
+      case "!next": {
+        const guildId = message.guild!.id;
+        message.reply("⏭️ Canción saltada.");
+        nextSong(guildId, message);
+        break;
+      }
+      case "!stop": {
+        const guildId = message.guild!.id;
+        stopPlayback(guildId);
+        message.reply("⏹️ Reproducción detenida.");
+        break;
+      }
+      case "!resume": {
+        const guildId = message.guild!.id;
+        resumePlayback(guildId);
+        message.reply("▶️ Reproducción reanudada.");
+        break;
+      }
+      case "!pause": {
+        const guildId = message.guild!.id;
+        pausePlayback(guildId);
+        message.reply("⏸️ Reproducción pausada.");
+        break;
+      }
+      case "!play": {
+        await playMusic(message, args);
+        break;
+      }
+      case "!current": {
+        const guildId = message.guild!.id;
+        currentPlayback(guildId, message);
+        break;
+      }
+      default:
+        break;
     }
-    case "!stop": {
-      const guildId = message.guild!.id;
-      stopPlayback(guildId);
-      message.reply("⏹️ Reproducción detenida.");
-      break;
-    }
-    case "!resume": {
-      const guildId = message.guild!.id;
-      resumePlayback(guildId);
-      message.reply("▶️ Reproducción reanudada.");
-      break;
-    }
-    case "!pause": {
-      const guildId = message.guild!.id;
-      pausePlayback(guildId);
-      message.reply("⏸️ Reproducción pausada.");
-      break;
-    }
-    case "!play": {
-      await playMusic(message, args);
-      break;
-    }
-    case "!current": {
-      const guildId = message.guild!.id;
-      currentPlayback(guildId, message);
-      break;
-    }
-    default:
-      break;
+  } catch (error) {
+    console.error(error);
   }
 });
 
