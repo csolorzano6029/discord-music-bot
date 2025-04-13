@@ -65,7 +65,7 @@ const messageQueue = (queue: GuildQueue, title: string): string =>
     ? `🎶 Reproduciendo: ${title}`
     : `🎶 Añadido a la cola: ${title}`;
 
-const queueHandler = async (guildId: string) => {
+const queueHandler = async (guildId: string, message: Message) => {
   const queue = queues.get(guildId);
   if (!queue || queue.songs.length === 0) return;
 
@@ -74,22 +74,24 @@ const queueHandler = async (guildId: string) => {
   const resource = createAudioResource(stream);
   queue.player.play(resource);
 
+  message.reply(`🎶 Reproduciendo: ${title}`);
+
   queue.player.once(AudioPlayerStatus.Playing, () =>
     console.log(`▶️ Reproduciendo: ${title}`)
   );
 
   queue.player.once(AudioPlayerStatus.Idle, () => {
     queue.songs.shift();
-    queueHandler(guildId);
+    queueHandler(guildId, message);
   });
 };
 
-const nextSong = (guildId: string) => {
+const nextSong = (guildId: string, message: Message) => {
   const queue = queues.get(guildId);
   if (!queue || queue.songs.length === 0) return;
 
   queue.songs.shift();
-  queueHandler(guildId);
+  queueHandler(guildId, message);
 };
 
 const stopPlayback = (guildId: string) => {
@@ -114,6 +116,22 @@ const pausePlayback = (guildId: string) => {
   if (!queue || queue.player.state.status !== AudioPlayerStatus.Playing) return;
 
   queue.player.pause();
+};
+
+const currentPlayback = (guildId: string, message: Message): void => {
+  const currentSong = getCurrentSong(guildId);
+  if (currentSong) {
+    message.reply(`🎶 Actualmente reproduciendo: ${currentSong}`);
+  } else {
+    message.reply("No hay ninguna canción reproduciéndose en este momento.");
+  }
+};
+
+const getCurrentSong = (guildId: string): string | null => {
+  const queue = queues.get(guildId);
+  if (!queue || queue.songs.length === 0) return null;
+
+  return queue.songs[0].title;
 };
 
 client.once("ready", () =>
@@ -173,7 +191,7 @@ const playMusic = async (message: Message, args: string[]) => {
       queue.player.state.status === AudioPlayerStatus.Idle &&
       queue.songs.length === tracks.length
     ) {
-      queueHandler(guildId);
+      queueHandler(guildId, message);
     }
     return;
   }
@@ -217,7 +235,7 @@ const playMusic = async (message: Message, args: string[]) => {
     queue.player.state.status === AudioPlayerStatus.Idle &&
     queue.songs.length === 1
   ) {
-    queueHandler(guildId);
+    queueHandler(guildId, message);
   }
 };
 
@@ -230,7 +248,7 @@ client.on("messageCreate", async (message: Message) => {
   switch (command) {
     case "!next": {
       const guildId = message.guild!.id;
-      nextSong(guildId);
+      nextSong(guildId, message);
       message.reply("⏭️ Canción saltada.");
       break;
     }
@@ -254,6 +272,11 @@ client.on("messageCreate", async (message: Message) => {
     }
     case "!play": {
       await playMusic(message, args);
+      break;
+    }
+    case "!current": {
+      const guildId = message.guild!.id;
+      currentPlayback(guildId, message);
       break;
     }
     default:
