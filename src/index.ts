@@ -259,8 +259,8 @@ client.on("messageCreate", async (message: Message) => {
   switch (command) {
     case "!next": {
       const guildId = message.guild!.id;
-      nextSong(guildId, message);
       message.reply("⏭️ Canción saltada.");
+      nextSong(guildId, message);
       break;
     }
     case "!stop": {
