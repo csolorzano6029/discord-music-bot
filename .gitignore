@@ -1,5 +1,8 @@
 # Node modules
 node_modules/
+dist/
+lib/
+build/
 
 # Compiled TypeScript
 dist/
@@ -32,6 +35,9 @@ coverage/
 
 # Optional: Mac system files
 *.DS_Store
+
+### package-lock.json ###
+package-lock.json
 
 # Optional: package-lock or yarn lock (if not using)
 # package-lock.json
