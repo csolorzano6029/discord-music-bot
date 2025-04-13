@@ -35,6 +35,18 @@ spotifyApi.clientCredentialsGrant().then(
   (err) => console.error("Error al obtener el token de Spotify", err)
 );
 
+const refreshSpotifyToken = async () => {
+  try {
+    const data = await spotifyApi.clientCredentialsGrant();
+    spotifyApi.setAccessToken(data.body["access_token"]);
+    console.log("🔄 Token de Spotify renovado");
+  } catch (error) {
+    console.error("Error al renovar el token de Spotify", error);
+  }
+};
+
+setInterval(refreshSpotifyToken, 1000 * 60 * 30); // Renueva el token cada 30 minutos
+
 const searchVideo = async (query: string): Promise<SearchVideo | null> => {
   const result = await ytSearch(query);
   const video = result.videos[0] || null;
