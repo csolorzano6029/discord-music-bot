@@ -65,7 +65,7 @@ const messageQueue = (queue: GuildQueue, title: string): string =>
     ? `🎶 Reproduciendo: ${title}`
     : `🎶 Añadido a la cola: ${title}`;
 
-const queueHandler = async (guildId: string, message: Message) => {
+const queueHandler = async (guildId: string, message?: Message) => {
   const queue = queues.get(guildId);
   if (!queue || queue.songs.length === 0) return;
 
@@ -74,7 +74,9 @@ const queueHandler = async (guildId: string, message: Message) => {
   const resource = createAudioResource(stream);
   queue.player.play(resource);
 
-  message.reply(`🎶 Reproduciendo: ${title}`);
+  if (message) {
+    message.reply(`🎶 Reproduciendo: ${title}`);
+  }
 
   queue.player.once(AudioPlayerStatus.Playing, () =>
     console.log(`▶️ Reproduciendo: ${title}`)
@@ -138,6 +140,60 @@ client.once("ready", () =>
   console.log(`✅ Bot conectado como ${client.user?.tag}`)
 );
 
+const playSpotifyPlaylist = async (message: Message, query: string) => {
+  const tracks = await getSpotifyPlaylistTracks(query);
+  if (!tracks || tracks.length === 0) {
+    message.reply("No encontré canciones en esa lista de reproducción.");
+    return;
+  }
+
+  const voiceChannel = message.member?.voice.channel;
+  if (!voiceChannel) {
+    message.reply("🎙️ Debes estar en un canal de voz.");
+    return;
+  }
+
+  const guildId = message.guild!.id;
+  let queue = queues.get(guildId);
+
+  if (!queue) {
+    const connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId,
+      adapterCreator: message.guild!.voiceAdapterCreator,
+    });
+
+    const player = createAudioPlayer();
+    connection.subscribe(player);
+
+    queue = { connection, player, songs: [] };
+    queues.set(guildId, queue);
+  }
+
+  // Añadir la primera canción y comenzar a reproducirla inmediatamente
+  const firstTrack = await searchVideo(tracks[0].title ?? "");
+  if (firstTrack) {
+    message.reply(
+      `🎶 Añadidas ${tracks.length} canciones de la lista de reproducción a la cola.`
+    );
+
+    queue.songs.push({ url: firstTrack.url, title: firstTrack.title });
+    message.reply(`🎶 Reproduciendo: ${firstTrack.title}`);
+
+    if (queue.player.state.status === AudioPlayerStatus.Idle) {
+      queueHandler(guildId);
+    }
+  }
+
+  // Cargar el resto de las canciones en segundo plano
+  tracks.slice(1).forEach(async (track) => {
+    const video = await searchVideo(track.title ?? "");
+    if (video) {
+      queue.songs.push({ url: video.url, title: video.title });
+    }
+  });
+};
+
 const playMusic = async (message: Message, args: string[]) => {
   if (!args.length) {
     message.reply("Debes escribir una canción o URL.");
@@ -147,52 +203,7 @@ const playMusic = async (message: Message, args: string[]) => {
   const query = args.join(" ");
 
   if (query.includes("spotify.com/playlist")) {
-    const tracks = await getSpotifyPlaylistTracks(query);
-    if (!tracks || tracks.length === 0) {
-      message.reply("No encontré canciones en esa lista de reproducción.");
-      return;
-    }
-
-    const voiceChannel = message.member?.voice.channel;
-    if (!voiceChannel) {
-      message.reply("🎙️ Debes estar en un canal de voz.");
-      return;
-    }
-
-    const guildId = message.guild!.id;
-    let queue = queues.get(guildId);
-
-    if (!queue) {
-      const connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId,
-        adapterCreator: message.guild!.voiceAdapterCreator,
-      });
-
-      const player = createAudioPlayer();
-      connection.subscribe(player);
-
-      queue = { connection, player, songs: [] };
-      queues.set(guildId, queue);
-    }
-
-    message.reply(
-      `🎶 Añadidas ${tracks.length} canciones de la lista de reproducción a la cola.`
-    );
-
-    for (const track of tracks) {
-      const video = await searchVideo(track.title ?? "");
-      if (video) {
-        queue.songs.push({ url: video.url, title: video.title });
-      }
-    }
-
-    if (
-      queue.player.state.status === AudioPlayerStatus.Idle &&
-      queue.songs.length === tracks.length
-    ) {
-      queueHandler(guildId, message);
-    }
+    await playSpotifyPlaylist(message, query);
     return;
   }
 
@@ -235,7 +246,7 @@ const playMusic = async (message: Message, args: string[]) => {
     queue.player.state.status === AudioPlayerStatus.Idle &&
     queue.songs.length === 1
   ) {
-    queueHandler(guildId, message);
+    queueHandler(guildId);
   }
 };
 
