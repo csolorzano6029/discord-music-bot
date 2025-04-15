@@ -83,7 +83,10 @@ const queueHandler = async (guildId: string, message?: Message) => {
 
   const { url, title } = queue.songs[0];
   try {
-    const stream = ytdl(url, { filter: "audioonly" });
+    const stream = ytdl(url, {
+      filter: "audioonly",
+      highWaterMark: 1 << 25, // Ajusta el tamaño del buffer
+    });
     const resource = createAudioResource(stream);
     queue.player.play(resource);
 
@@ -164,8 +167,9 @@ const createAudioPlayerWithErrorHandling = () => {
 
   player.on("error", (error) => {
     console.error(`AudioPlayerError: ${error.message}`);
+    console.error(error);
     if (error.resource) {
-      console.error("Error en el recurso de audio:", error.resource.metadata);
+      console.error("Error en el recurso de audio:", error.resource);
     }
   });
 
