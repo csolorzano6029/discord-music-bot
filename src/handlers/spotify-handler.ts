@@ -7,8 +7,7 @@ import {
   searchVideo,
 } from "./player-handler";
 import { queueHandler } from "./queue-handler";
-
-const queues = new Map<string, GuildQueue>();
+import { queues } from "./queue-handler";
 
 export const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,

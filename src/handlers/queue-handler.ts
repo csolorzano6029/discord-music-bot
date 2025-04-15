@@ -4,7 +4,7 @@ import { createAudioResource, AudioPlayerStatus } from "@discordjs/voice";
 import { GuildQueue } from "../types";
 import { Message } from "discord.js";
 
-const queues = new Map<string, GuildQueue>();
+export const queues = new Map<string, GuildQueue>();
 
 export const queueHandler = async (guildId: string, message?: Message) => {
   const queue = queues.get(guildId);

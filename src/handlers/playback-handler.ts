@@ -7,8 +7,7 @@ import {
   searchVideo,
 } from "./player-handler";
 import { playSpotifyPlaylist } from "./spotify-handler";
-
-const queues = new Map<string, GuildQueue>();
+import { queues } from "./queue-handler";
 
 export const nextSong = (guildId: string, message: Message) => {
   const queue = queues.get(guildId);
