@@ -1,49 +1,35 @@
 import "dotenv/config";
-import { Client, GatewayIntentBits, Message } from "discord.js";
+import { Message } from "discord.js";
 import {
   joinVoiceChannel,
   createAudioPlayer,
-  createAudioResource,
   AudioPlayerStatus,
 } from "@discordjs/voice";
-import ytdl from "@distube/ytdl-core";
 import ytSearch from "yt-search";
-import SpotifyWebApi from "spotify-web-api-node";
 import { GuildQueue } from "./types";
 import { SearchVideo } from "./interfaces";
+import { client } from "./handlers/discord-handler";
+import {
+  refreshSpotifyToken,
+  spotifyApi,
+  getSpotifyPlaylistTracks,
+} from "./handlers/spotify-handler";
+import {
+  currentPlayback,
+  nextSong,
+  pausePlayback,
+  resumePlayback,
+  stopPlayback,
+} from "./handlers/playback-handler";
+import { queueHandler } from "./handlers/queue-handler";
 
 const queues = new Map<string, GuildQueue>();
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
-
-// Configuración de Spotify API
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-});
 
 // Obtener token de acceso de Spotify
 spotifyApi.clientCredentialsGrant().then(
   (data) => spotifyApi.setAccessToken(data.body["access_token"]),
   (err) => console.error("Error al obtener el token de Spotify", err)
 );
-
-const refreshSpotifyToken = async () => {
-  try {
-    const data = await spotifyApi.clientCredentialsGrant();
-    spotifyApi.setAccessToken(data.body["access_token"]);
-    console.log("🔄 Token de Spotify renovado");
-  } catch (error) {
-    console.error("Error al renovar el token de Spotify", error);
-  }
-};
 
 setInterval(refreshSpotifyToken, 1000 * 60 * 30); // Renueva el token cada 30 minutos
 
@@ -53,64 +39,12 @@ const searchVideo = async (query: string): Promise<SearchVideo | null> => {
   return video ? { title: video.title, url: video.url } : null;
 };
 
-const getSpotifyPlaylistTracks = async (playlistUrl: string) => {
-  const playlistId = playlistUrl.split("playlist/")[1]?.split("?")[0];
-  if (!playlistId) return null;
-
-  try {
-    const data = await spotifyApi.getPlaylistTracks(playlistId);
-    return data.body.items.map((item) => ({
-      title: item.track?.name,
-      url: item.track?.external_urls.spotify,
-    }));
-  } catch (error) {
-    console.error(
-      "Error al obtener la lista de reproducción de Spotify",
-      error
-    );
-    return null;
-  }
-};
-
 const messageQueue = (queue: GuildQueue, title: string): string =>
   queue.songs?.length === 1
     ? `🎶 Reproduciendo: ${title}`
     : `🎶 Añadido a la cola: ${title}`;
 
-const queueHandler = async (guildId: string, message?: Message) => {
-  const queue = queues.get(guildId);
-  if (!queue || queue.songs.length === 0) return;
-
-  const { url, title } = queue.songs[0];
-  try {
-    const stream = ytdl(url, {
-      filter: "audioonly",
-      highWaterMark: 1 << 25, // Ajusta el tamaño del buffer
-    });
-    const resource = createAudioResource(stream);
-    queue.player.play(resource);
-
-    if (message) {
-      message.reply(`🎶 Reproduciendo: ${title}`);
-    }
-
-    queue.player.once(AudioPlayerStatus.Playing, () =>
-      console.log(`▶️  Reproduciendo: ${title}`)
-    );
-
-    queue.player.once(AudioPlayerStatus.Idle, () => {
-      queue.songs.shift();
-      queueHandler(guildId, message);
-    });
-  } catch (error: any) {
-    console.error(`Error al reproducir la canción: ${error.message}`);
-    message?.reply("❌ Hubo un problema al reproducir la canción.");
-    queue.songs.shift();
-    queueHandler(guildId, message);
-  }
-};
-
-const nextSong = (guildId: string, message: Message) => {
+/* const nextSong = (guildId: string, message: Message) => {
   const queue = queues.get(guildId);
   if (!queue || queue.songs.length === 0) return;
 
@@ -156,7 +90,7 @@ const getCurrentSong = (guildId: string): string | null => {
   if (!queue || queue.songs.length === 0) return null;
 
   return queue.songs[0].title;
-};
+}; */
 
 client.once("ready", () =>
   console.log(`✅ Bot conectado como ${client.user?.tag}`)
