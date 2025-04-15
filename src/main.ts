@@ -92,7 +92,7 @@ const queueHandler = async (guildId: string, message?: Message) => {
     }
 
     queue.player.once(AudioPlayerStatus.Playing, () =>
-      console.log(`▶️ Reproduciendo: ${title}`)
+      console.log(`▶️  Reproduciendo: ${title}`)
     );
 
     queue.player.once(AudioPlayerStatus.Idle, () => {
@@ -159,6 +159,19 @@ client.once("ready", () =>
   console.log(`✅ Bot conectado como ${client.user?.tag}`)
 );
 
+const createAudioPlayerWithErrorHandling = () => {
+  const player = createAudioPlayer();
+
+  player.on("error", (error) => {
+    console.error(`AudioPlayerError: ${error.message}`);
+    if (error.resource) {
+      console.error("Error en el recurso de audio:", error.resource.metadata);
+    }
+  });
+
+  return player;
+};
+
 const playSpotifyPlaylist = async (message: Message, query: string) => {
   const tracks = await getSpotifyPlaylistTracks(query);
   if (!tracks || tracks.length === 0) {
@@ -182,7 +195,7 @@ const playSpotifyPlaylist = async (message: Message, query: string) => {
       adapterCreator: message.guild!.voiceAdapterCreator,
     });
 
-    const player = createAudioPlayer();
+    const player = createAudioPlayerWithErrorHandling();
     connection.subscribe(player);
 
     queue = { connection, player, songs: [] };
@@ -251,7 +264,7 @@ const playMusic = async (message: Message, args: string[]) => {
       adapterCreator: message.guild!.voiceAdapterCreator,
     });
 
-    const player = createAudioPlayer();
+    const player = createAudioPlayerWithErrorHandling();
     connection.subscribe(player);
 
     queue = { connection, player, songs: [] };
