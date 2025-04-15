@@ -38,3 +38,8 @@ export const queueHandler = async (guildId: string, message?: Message) => {
     queueHandler(guildId, message);
   }
 };
+
+export const messageQueue = (queue: GuildQueue, title: string): string =>
+  queue.songs?.length === 1
+    ? `🎶 Reproduciendo: ${title}`
+    : `🎶 Añadido a la cola: ${title}`;

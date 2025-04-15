@@ -1,4 +1,14 @@
+import { Message } from "discord.js";
 import SpotifyWebApi from "spotify-web-api-node";
+import { GuildQueue } from "../types";
+import { joinVoiceChannel, AudioPlayerStatus } from "@discordjs/voice";
+import {
+  createAudioPlayerWithErrorHandling,
+  searchVideo,
+} from "./player-handler";
+import { queueHandler } from "./queue-handler";
+
+const queues = new Map<string, GuildQueue>();
 
 export const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -32,4 +42,58 @@ export const getSpotifyPlaylistTracks = async (playlistUrl: string) => {
     );
     return null;
   }
+};
+
+export const playSpotifyPlaylist = async (message: Message, query: string) => {
+  const tracks = await getSpotifyPlaylistTracks(query);
+  if (!tracks || tracks.length === 0) {
+    message.reply("No encontré canciones en esa lista de reproducción.");
+    return;
+  }
+
+  const voiceChannel = message.member?.voice.channel;
+  if (!voiceChannel) {
+    message.reply("🎙️ Debes estar en un canal de voz.");
+    return;
+  }
+
+  const guildId = message.guild!.id;
+  let queue = queues.get(guildId);
+
+  if (!queue) {
+    const connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId,
+      adapterCreator: message.guild!.voiceAdapterCreator,
+    });
+
+    const player = createAudioPlayerWithErrorHandling();
+    connection.subscribe(player);
+
+    queue = { connection, player, songs: [] };
+    queues.set(guildId, queue);
+  }
+
+  // Añadir la primera canción y comenzar a reproducirla inmediatamente
+  const firstTrack = await searchVideo(tracks[0].title ?? "");
+  if (firstTrack) {
+    message.reply(
+      `🎶 Añadidas ${tracks.length} canciones de la lista de reproducción a la cola.`
+    );
+
+    queue.songs.push({ url: firstTrack.url, title: firstTrack.title });
+    message.reply(`🎶 Reproduciendo: ${firstTrack.title}`);
+
+    if (queue.player.state.status === AudioPlayerStatus.Idle) {
+      queueHandler(guildId);
+    }
+  }
+
+  // Cargar el resto de las canciones en segundo plano
+  tracks.slice(1).forEach(async (track) => {
+    const video = await searchVideo(track.title ?? "");
+    if (video) {
+      queue.songs.push({ url: video.url, title: video.title });
+    }
+  });
 };
