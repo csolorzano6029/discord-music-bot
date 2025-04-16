@@ -77,11 +77,11 @@ export const playSpotifyPlaylist = async (message: Message, query: string) => {
   const firstTrack = await searchVideo(tracks[0].title ?? "");
   if (firstTrack) {
     message.reply(
-      `🎶 Añadidas ${tracks.length} canciones de la lista de reproducción a la cola.`
+      `▶️  Añadidas ${tracks.length} canciones de la lista de reproducción a la cola.`
     );
 
     queue.songs.push({ url: firstTrack.url, title: firstTrack.title });
-    message.reply(`🎶 Reproduciendo: ${firstTrack.title}`);
+    message.reply(`▶️  Reproduciendo: ${firstTrack.title}`);
 
     if (queue.player.state.status === AudioPlayerStatus.Idle) {
       queueHandler(guildId);

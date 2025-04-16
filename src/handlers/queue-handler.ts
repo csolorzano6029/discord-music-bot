@@ -20,7 +20,7 @@ export const queueHandler = async (guildId: string, message?: Message) => {
     queue.player.play(resource);
 
     if (message) {
-      message.reply(`🎶 Reproduciendo: ${title}`);
+      message.reply(`▶️  Reproduciendo: ${title}`);
     }
 
     queue.player.once(AudioPlayerStatus.Playing, () =>

@@ -1,9 +1,9 @@
-import { GuildQueue } from "../types";
 import { Message } from "discord.js";
 import { messageQueue, queueHandler } from "./queue-handler";
 import { AudioPlayerStatus, joinVoiceChannel } from "@discordjs/voice";
 import {
   createAudioPlayerWithErrorHandling,
+  playYoutubePlaylist,
   searchVideo,
 } from "./player-handler";
 import { playSpotifyPlaylist } from "./spotify-handler";
@@ -44,7 +44,7 @@ export const pausePlayback = (guildId: string) => {
 export const currentPlayback = (guildId: string, message: Message): void => {
   const currentSong = getCurrentSong(guildId);
   if (currentSong) {
-    message.reply(`🎶 Actualmente reproduciendo: ${currentSong}`);
+    message.reply(`▶️  Actualmente reproduciendo: ${currentSong}`);
   } else {
     message.reply("No hay ninguna canción reproduciéndose en este momento.");
   }
@@ -67,6 +67,11 @@ export const playMusic = async (message: Message, args: string[]) => {
 
   if (query.includes("spotify.com/playlist")) {
     await playSpotifyPlaylist(message, query);
+    return;
+  }
+
+  if (query.includes("youtube.com/playlist")) {
+    await playYoutubePlaylist(query, message);
     return;
   }
 
