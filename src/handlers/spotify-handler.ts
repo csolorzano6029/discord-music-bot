@@ -49,7 +49,8 @@ export const playSpotifyPlaylist = async (message: Message, query: string) => {
   // Obtener token de acceso de Spotify
   spotifyApi.clientCredentialsGrant().then(
     (data) => spotifyApi.setAccessToken(data.body["access_token"]),
-    (err) => console.error("Error al obtener el token de Spotify", err)
+    (error) =>
+      console.error("Error al obtener el token de Spotify", error.statusCode)
   );
 
   const tracks = await getSpotifyPlaylistTracks(query);

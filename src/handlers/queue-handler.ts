@@ -41,5 +41,5 @@ export const queueHandler = async (guildId: string, message?: Message) => {
 
 export const messageQueue = (queue: GuildQueue, title: string): string =>
   queue.songs?.length === 1
-    ? `🎶 Reproduciendo: ${title}`
-    : `🎶 Añadido a la cola: ${title}`;
+    ? `▶️  Reproduciendo: ${title}`
+    : `▶️  Añadido a la cola: ${title}`;
