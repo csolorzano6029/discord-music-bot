@@ -121,7 +121,51 @@ export const playMusic = async (message: Message, args: string[]) => {
 
 export const lyricsPlayBack = async (guildId: string, message: Message) => {
   const currentSong = getCurrentSong(guildId);
-  const lyrics = await getLyrics(currentSong ?? "");
 
-  message.reply(lyrics);
+  if (!currentSong) {
+    message.reply("No hay ninguna canción reproduciéndose en este momento.");
+    return;
+  }
+
+  // Limpia el título de la canción eliminando palabras innecesarias
+  const cleanedTitle = currentSong
+    .toLowerCase()
+    .replace(/\(.*?\)|\[.*?\]|oficial|video|lyrics|-|hd|\d+p/gi, "")
+    .trim();
+
+  // Obtén la letra de la canción usando el título limpio
+  const lyrics = await getLyrics(cleanedTitle);
+
+  if (lyrics) {
+    const cleanedLyrics = lyrics
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join("\n"); // mantenemos un solo \n entre líneas reales
+
+    const chunks: string[] = [];
+    let currentChunk = "";
+
+    for (const line of cleanedLyrics.split("\n")) {
+      if ((currentChunk + "\n" + line).length > 2000) {
+        chunks.push(currentChunk);
+        currentChunk = line;
+      } else {
+        currentChunk += (currentChunk ? "\n" : "") + line;
+      }
+    }
+
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
+
+    await message.reply(`🎵 Letra de la canción:\n\n`);
+    for (const chunk of chunks.entries()) {
+      if (message.channel.isTextBased()) {
+        await message.reply(`${chunk}`);
+      }
+    }
+  } else {
+    message.reply("❌ No se pudo encontrar la letra de la canción.");
+  }
 };
