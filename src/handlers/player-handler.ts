@@ -10,15 +10,15 @@ import { Message } from "discord.js";
 import { queueHandler } from "./queue-handler";
 import { queues } from "./queue-handler";
 
-export const createAudioPlayerWithErrorHandling = () => {
+export const createAudioPlayerWithErrorHandling = (guildId: string) => {
   const player = createAudioPlayer();
 
   player.on("error", (error) => {
     console.error(`AudioPlayerError: ${error.message}`);
-    console.error(error);
     if (error.resource) {
       console.error("Error en el recurso de audio:", error.resource);
     }
+    queueHandler(guildId); // Reintenta reproducir la siguiente canción
   });
 
   return player;
@@ -59,7 +59,7 @@ export const playYoutubePlaylist = async (query: string, message: Message) => {
         adapterCreator: message.guild!.voiceAdapterCreator,
       });
 
-      const player = createAudioPlayerWithErrorHandling();
+      const player = createAudioPlayerWithErrorHandling(guildId);
       connection.subscribe(player);
 
       queue = { connection, player, songs: [] };

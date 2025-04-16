@@ -8,6 +8,7 @@ import {
 } from "./player-handler";
 import { playSpotifyPlaylist } from "./spotify-handler";
 import { queues } from "./queue-handler";
+import { getLyrics } from "./lyrics-handler";
 
 export const nextSong = (guildId: string, message: Message) => {
   const queue = queues.get(guildId);
@@ -100,7 +101,7 @@ export const playMusic = async (message: Message, args: string[]) => {
       adapterCreator: message.guild!.voiceAdapterCreator,
     });
 
-    const player = createAudioPlayerWithErrorHandling();
+    const player = createAudioPlayerWithErrorHandling(guildId);
     connection.subscribe(player);
 
     queue = { connection, player, songs: [] };
@@ -116,4 +117,11 @@ export const playMusic = async (message: Message, args: string[]) => {
   ) {
     queueHandler(guildId);
   }
+};
+
+export const lyricsPlayBack = async (guildId: string, message: Message) => {
+  const currentSong = getCurrentSong(guildId);
+  const lyrics = await getLyrics(currentSong ?? "");
+
+  message.reply(lyrics);
 };

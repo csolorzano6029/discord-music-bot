@@ -43,7 +43,15 @@ export const getSpotifyPlaylistTracks = async (playlistUrl: string) => {
   }
 };
 
+setInterval(refreshSpotifyToken, 1000 * 60 * 30); // Renueva el token cada 30 minutos
+
 export const playSpotifyPlaylist = async (message: Message, query: string) => {
+  // Obtener token de acceso de Spotify
+  spotifyApi.clientCredentialsGrant().then(
+    (data) => spotifyApi.setAccessToken(data.body["access_token"]),
+    (err) => console.error("Error al obtener el token de Spotify", err)
+  );
+
   const tracks = await getSpotifyPlaylistTracks(query);
   if (!tracks || tracks.length === 0) {
     message.reply("No encontré canciones en esa lista de reproducción.");
@@ -66,7 +74,7 @@ export const playSpotifyPlaylist = async (message: Message, query: string) => {
       adapterCreator: message.guild!.voiceAdapterCreator,
     });
 
-    const player = createAudioPlayerWithErrorHandling();
+    const player = createAudioPlayerWithErrorHandling(guildId);
     connection.subscribe(player);
 
     queue = { connection, player, songs: [] };
