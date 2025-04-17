@@ -23,40 +23,40 @@ client.on("messageCreate", async (message: Message) => {
 
   try {
     switch (command) {
-      case "!next": {
+      case "!n": {
         const guildId = message.guild!.id;
         message.reply("⏭️ Canción saltada.");
         nextSong(guildId, message);
         break;
       }
-      case "!stop": {
+      case "!s": {
         const guildId = message.guild!.id;
         stopPlayback(guildId);
         message.reply("⏹️ Reproducción detenida.");
         break;
       }
-      case "!resume": {
+      case "!r": {
         const guildId = message.guild!.id;
         resumePlayback(guildId);
         message.reply("▶️ Reproducción reanudada.");
         break;
       }
-      case "!pause": {
+      case "!ps": {
         const guildId = message.guild!.id;
         pausePlayback(guildId);
         message.reply("⏸️ Reproducción pausada.");
         break;
       }
-      case "!play": {
+      case "!p": {
         await playMusic(message, args);
         break;
       }
-      case "!lyrics": {
+      case "!l": {
         const guildId = message.guild!.id;
         await lyricsPlayBack(guildId, message);
         break;
       }
-      case "!current": {
+      case "!c": {
         const guildId = message.guild!.id;
         currentPlayback(guildId, message);
         break;
