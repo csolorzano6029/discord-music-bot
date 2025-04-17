@@ -169,3 +169,39 @@ export const lyricsPlayBack = async (guildId: string, message: Message) => {
     message.reply("❌ No se pudo encontrar la letra de la canción.");
   }
 };
+
+export const helpCommand = (message: Message) => {
+  const commands = [
+    {
+      command: "!p",
+      description: "Reproduce una canción o lista de reproducción.",
+    },
+    { command: "!ps", description: "Pausa la reproducción actual." },
+    {
+      command: "!r",
+      description: "Reanuda la reproducción pausada.",
+    },
+    {
+      command: "!s",
+      description: "Detiene la reproducción y limpia la cola.",
+    },
+    {
+      command: "!n",
+      description: "Salta a la siguiente canción en la cola.",
+    },
+    {
+      command: "!l",
+      description: "Muestra la letra de la canción actual.",
+    },
+    {
+      command: "!h",
+      description: "Lista todos los comandos disponibles.",
+    },
+  ];
+
+  const helpMessage = commands
+    .map((cmd) => `**${cmd.command}**: ${cmd.description}`)
+    .join("\n");
+
+  message.reply(`📜 **Lista de comandos disponibles:**\n\n${helpMessage}`);
+};

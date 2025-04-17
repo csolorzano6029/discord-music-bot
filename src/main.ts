@@ -3,6 +3,7 @@ import { Message } from "discord.js";
 import { client } from "./handlers/discord-handler";
 import {
   currentPlayback,
+  helpCommand,
   lyricsPlayBack,
   nextSong,
   pausePlayback,
@@ -59,6 +60,10 @@ client.on("messageCreate", async (message: Message) => {
       case "!c": {
         const guildId = message.guild!.id;
         currentPlayback(guildId, message);
+        break;
+      }
+      case "!h": {
+        helpCommand(message);
         break;
       }
       default:
