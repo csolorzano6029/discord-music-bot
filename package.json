@@ -23,10 +23,11 @@
     "@discordjs/voice": "^0.18.0",
     "@distube/ytdl-core": "^4.16.8",
     "0f": "^1.0.0",
+    "cheerio": "^1.0.0",
     "discord.js": "^14.18.0",
     "dotenv": "^16.5.0",
     "spotify-web-api-node": "^5.0.2",
-    "yt-search": "^2.12.1",
+    "yt-search": "^2.6.1",
     "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
